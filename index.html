@@ -88,7 +88,7 @@
       overflow-x: hidden;
     }
 
-    /* Top Brand Header */
+    /* Top Page Header */
     .app-header {
       text-align: center;
       margin-bottom: 30px;
@@ -976,7 +976,7 @@
       font-family: 'Courier New', Courier, monospace;
       font-size: 13px;
       color: #38bdf8;
-      height: 180px;
+      height: 190px;
       overflow-y: auto;
       line-height: 1.6;
       margin-bottom: 20px;
@@ -1096,7 +1096,7 @@
       <!-- Dispatch Options -->
       <div class="dispatch-header">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        Dispatch E-Pass
+        Dispatch E-Pass Photo
       </div>
 
       <div class="form-group">
@@ -1117,11 +1117,11 @@
         </button>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <button class="btn btn-secondary" onclick="sendEmail()" style="font-size: 13px; padding: 12px 6px;">
+          <button class="btn btn-secondary" onclick="dispatchEPass('Email')" style="font-size: 13px; padding: 12px 6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             Send Email
           </button>
-          <button class="btn btn-secondary" onclick="sendWhatsApp()" style="font-size: 13px; padding: 12px 6px;">
+          <button class="btn btn-secondary" onclick="dispatchEPass('WhatsApp')" style="font-size: 13px; padding: 12px 6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
             WhatsApp
           </button>
@@ -1534,168 +1534,138 @@
 
     window.addEventListener("resize", autoScalePass);
 
-    // Parse URL query parameters on page load to allow dynamic sharing
-    function loadURLParameters() {
-      const urlParams = new URLSearchParams(window.location.search);
-      
-      const team = urlParams.get('team');
-      const m1 = urlParams.get('m1');
-      const m2 = urlParams.get('m2');
-      const m3 = urlParams.get('m3');
-      const m4 = urlParams.get('m4');
-      const date = urlParams.get('date');
-      const venue = urlParams.get('venue');
-      const theme = urlParams.get('theme');
-
-      if (team !== null) inputTeam.value = team;
-      if (m1 !== null) inputM1.value = m1;
-      if (m2 !== null) inputM2.value = m2;
-      if (m3 !== null) inputM3.value = m3;
-      if (m4 !== null) inputM4.value = m4;
-      if (date !== null) inputDate.value = date;
-      if (venue !== null) inputVenue.value = venue;
-      
-      updatePreview();
-
-      if (theme !== null && theme !== "") {
-        setTheme(theme);
-      }
-    }
-
-    // Generate link populated with current parameters
-    function getShareableLink() {
-      const baseUrl = window.location.origin + window.location.pathname;
-      const params = new URLSearchParams();
-      params.set('team', inputTeam.value);
-      if (inputM1.value) params.set('m1', inputM1.value);
-      if (inputM2.value) params.set('m2', inputM2.value);
-      if (inputM3.value) params.set('m3', inputM3.value);
-      if (inputM4.value) params.set('m4', inputM4.value);
-      params.set('date', inputDate.value);
-      params.set('venue', inputVenue.value);
-      
-      // Find current theme
-      let activeTheme = 'cyan';
-      if (pass.classList.contains('theme-purple')) activeTheme = 'purple';
-      else if (pass.classList.contains('theme-crimson')) activeTheme = 'crimson';
-      else if (pass.classList.contains('theme-green')) activeTheme = 'green';
-      params.set('theme', activeTheme);
-
-      return `${baseUrl}?${params.toString()}`;
-    }
-
-    // Dispatch: send email to Team Lead
-    function sendEmail() {
+    // Main dispatch coordinator: copies photo to clipboard first, then opens links
+    function dispatchEPass(method) {
       const email = document.getElementById("input-email").value.trim();
-      if (!email) {
+      const phone = document.getElementById("input-phone").value.trim();
+
+      if (method === "Email" && !email) {
         alert("Please enter the Team Lead's email address first!");
         return;
       }
-      
-      const teamName = inputTeam.value || "shatabhisha";
-      const members = [inputM1.value, inputM2.value, inputM3.value, inputM4.value]
-        .filter(name => name.trim() !== "")
-        .join(", ");
-      const dateVal = inputDate.value;
-      const venueVal = inputVenue.value;
-      const shareUrl = getShareableLink();
-      
-      const subject = encodeURIComponent(`HackSpirit 2K26 E-Pass - Team ${teamName}`);
-      const bodyText = `Hi Team Lead,\n\nHere are the details for your HackSpirit 2K26 E-Pass:\n\n` +
-        `Team Name: ${teamName}\n` +
-        `Members: ${members}\n` +
-        `Date: ${dateVal}\n` +
-        `Venue: ${venueVal}\n\n` +
-        `🔗 View/Download your Digital E-Pass here:\n${shareUrl}\n\n` +
-        `Present this information at the registration desk. Note: Each team member must carry a valid college ID card.\n\n` +
-        `Best regards,\nHackSpirit Organizers`;
-      
-      const mailtoUrl = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
-      
-      // Show terminal simulation modal
-      showTerminalModal("Email", email, () => {
-        window.location.href = mailtoUrl;
-      });
-    }
-
-    // Dispatch: send WhatsApp message to Team Lead
-    function sendWhatsApp() {
-      let phone = document.getElementById("input-phone").value.trim();
-      if (!phone) {
-        alert("Please enter the WhatsApp number (including country code) first!");
+      if (method === "WhatsApp" && !phone) {
+        alert("Please enter the WhatsApp number (with country code) first!");
         return;
       }
-      
-      // Clean phone number (remove +, spaces, dashes)
-      phone = phone.replace(/[^0-9]/g, "");
-      
+
+      // Reset transforms temporarily for clean pixel screenshot extraction
+      const prevTransform = pass.style.transform;
+      const prevOrigin = pass.style.transformOrigin;
+      pass.style.transform = "none";
+      pass.style.transformOrigin = "initial";
+
+      // Show console modal and start generating
+      showTerminalModal(method, method === "Email" ? email : `+${phone.replace(/[^0-9]/g, "")}`);
+
+      setTimeout(() => {
+        html2canvas(pass, {
+          scale: 2.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null,
+          logging: false
+        }).then(canvas => {
+          // Restore pass scaling in UI
+          pass.style.transform = prevTransform;
+          pass.style.transformOrigin = prevOrigin;
+
+          // Convert to blob and write to clipboard
+          canvas.toBlob(blob => {
+            let copySuccess = false;
+            try {
+              const item = new ClipboardItem({ "image/png": blob });
+              navigator.clipboard.write([item]).then(() => {
+                copySuccess = true;
+                printTerminalLine("[CLIPBOARD] E-Pass photo copied to system clipboard successfully!");
+                proceedToLaunch(method, email, phone);
+              }).catch(err => {
+                console.error("Clipboard write rejected:", err);
+                printTerminalLine("[WARNING] Browser clipboard write blocked. Proceeding with details...");
+                proceedToLaunch(method, email, phone);
+              });
+            } catch (e) {
+              console.error("ClipboardItem not supported:", e);
+              printTerminalLine("[WARNING] Clipboard Item not supported. Proceeding with details...");
+              proceedToLaunch(method, email, phone);
+            }
+          }, "image/png");
+        }).catch(err => {
+          console.error("html2canvas generation failed:", err);
+          pass.style.transform = prevTransform;
+          pass.style.transformOrigin = prevOrigin;
+          printTerminalLine("[ERROR] Image generation failed. Dispatching plain text...");
+          proceedToLaunch(method, email, phone);
+        });
+      }, 300);
+    }
+
+    function printTerminalLine(text, color = "") {
+      const consoleEl = document.getElementById("terminal-console");
+      const p = document.createElement("div");
+      p.className = "terminal-line";
+      p.textContent = text;
+      if (color) p.style.color = color;
+      consoleEl.appendChild(p);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    // Handles the actual redirection / launching of email/whatsapp client APIs
+    function proceedToLaunch(method, email, phone) {
       const teamName = inputTeam.value || "shatabhisha";
       const members = [inputM1.value, inputM2.value, inputM3.value, inputM4.value]
         .filter(name => name.trim() !== "")
         .join(", ");
       const dateVal = inputDate.value;
       const venueVal = inputVenue.value;
-      const shareUrl = getShareableLink();
-      
-      const text = `*HACKSPIRIT 2K26 OFFICIAL E-PASS*\n\n` +
-        `*Team:* ${teamName}\n` +
-        `*Members:* ${members}\n` +
-        `*Date:* ${dateVal}\n` +
-        `*Venue:* ${venueVal}\n\n` +
-        `🔗 *View / Download your Digital E-Pass card here:*\n${shareUrl}\n\n` +
-        `_(Please attach your downloaded E-Pass image (PNG) to this message before sending)_`;
-      
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`;
-      
-      // Show terminal simulation modal
-      showTerminalModal("WhatsApp", `+${phone}`, () => {
-        window.open(whatsappUrl, "_blank");
-      });
+
+      setTimeout(() => {
+        if (method === "Email") {
+          printTerminalLine("[SMTP] Routing to email client...", "#38bdf8");
+          const subject = encodeURIComponent(`HackSpirit 2K26 E-Pass - Team ${teamName}`);
+          const bodyText = `Hi Team Lead,\n\nI have attached the E-Pass image (copied to your clipboard, just press Paste/Ctrl+V to insert the image).\n\n` +
+            `Team Name: ${teamName}\n` +
+            `Members: ${members}\n` +
+            `Date: ${dateVal}\n` +
+            `Venue: ${venueVal}\n\n` +
+            `Please bring this pass. Each team member must carry a valid college ID card.\n\n` +
+            `Best regards,\nHackSpirit Organizers`;
+          
+          printTerminalLine("[SUCCESS] Launching email. PASTE (Ctrl+V) in the email to insert the photo!", "#10b981");
+          setTimeout(() => {
+            document.getElementById("terminal-overlay").classList.remove("active");
+            window.location.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+          }, 1500);
+
+        } else if (method === "WhatsApp") {
+          printTerminalLine("[WHATSAPP] Interfacing with WhatsApp API...", "#38bdf8");
+          const cleanPhone = phone.replace(/[^0-9]/g, "");
+          const text = `*HACKSPIRIT 2K26 OFFICIAL E-PASS*\n\n` +
+            `*Team:* ${teamName}\n` +
+            `*Members:* ${members}\n` +
+            `*Date:* ${dateVal}\n` +
+            `*Venue:* ${venueVal}\n\n` +
+            `_(Note: The pass photo is copied to your clipboard. Just press Paste/Ctrl+V in the chat box to send the actual image file!)_`;
+          
+          printTerminalLine("[SUCCESS] Launching WhatsApp. PASTE (Ctrl+V) in the chat to send the photo!", "#10b981");
+          setTimeout(() => {
+            document.getElementById("terminal-overlay").classList.remove("active");
+            window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`, "_blank");
+          }, 1500);
+        }
+      }, 1000);
     }
 
-    // Cyberpunk Terminal Simulation Modal Animation
-    function showTerminalModal(type, target, onComplete) {
+    // Cyberpunk Terminal Simulation Modal Animation Initializer
+    function showTerminalModal(type, target) {
       const overlay = document.getElementById("terminal-overlay");
       const consoleEl = document.getElementById("terminal-console");
       consoleEl.innerHTML = "";
       overlay.classList.add("active");
       
-      const lines = [
-        `[SYS] Initializing secure telemetry channel...`,
-        `[SYS] Connected to HackSpirit dispatch server.`,
-        `[DATA] Compiling E-Pass credentials for [${inputTeam.value || 'shatabhisha'}]...`,
-        `[DATA] Generating cryptographically signed payload... Done.`,
-        `[SMTP] Routing payload to target: ${target}...`,
-        `[SYS] Handshaking protocols complete. Ready to dispatch.`
-      ];
-      
-      let i = 0;
-      function printNextLine() {
-        if (i < lines.length) {
-          const p = document.createElement("div");
-          p.className = "terminal-line";
-          p.textContent = lines[i];
-          consoleEl.appendChild(p);
-          consoleEl.scrollTop = consoleEl.scrollHeight;
-          i++;
-          setTimeout(printNextLine, 400);
-        } else {
-          const p = document.createElement("div");
-          p.className = "terminal-line";
-          p.style.color = "#10b981";
-          p.style.fontWeight = "bold";
-          p.textContent = `[SUCCESS] Connection established. Redirecting to ${type} client...`;
-          consoleEl.appendChild(p);
-          consoleEl.scrollTop = consoleEl.scrollHeight;
-          
-          setTimeout(() => {
-            overlay.classList.remove("active");
-            if (onComplete) onComplete();
-          }, 1100);
-        }
-      }
-      
-      setTimeout(printNextLine, 200);
+      printTerminalLine(`[SYS] Initializing secure telemetry channel...`);
+      setTimeout(() => printTerminalLine(`[SYS] Connected to HackSpirit dispatch core.`), 200);
+      setTimeout(() => printTerminalLine(`[DATA] Extracting E-Pass canvas layout...`), 400);
+      setTimeout(() => printTerminalLine(`[DATA] Compiling image data block for [${inputTeam.value || 'shatabhisha'}]...`), 650);
     }
 
     // PNG download with html2canvas (scaled up for high-res crispness)
@@ -1750,9 +1720,8 @@
 
     // Init page state
     document.addEventListener("DOMContentLoaded", () => {
-      // Parse URL Parameters if available
-      loadURLParameters();
-      
+      // Ensure preview has correct values initially
+      updatePreview();
       // Apply scaling based on window size
       autoScalePass();
       
