@@ -1534,6 +1534,56 @@
 
     window.addEventListener("resize", autoScalePass);
 
+    // Parse URL query parameters on page load to allow dynamic sharing
+    function loadURLParameters() {
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      const team = urlParams.get('team');
+      const m1 = urlParams.get('m1');
+      const m2 = urlParams.get('m2');
+      const m3 = urlParams.get('m3');
+      const m4 = urlParams.get('m4');
+      const date = urlParams.get('date');
+      const venue = urlParams.get('venue');
+      const theme = urlParams.get('theme');
+
+      if (team !== null) inputTeam.value = team;
+      if (m1 !== null) inputM1.value = m1;
+      if (m2 !== null) inputM2.value = m2;
+      if (m3 !== null) inputM3.value = m3;
+      if (m4 !== null) inputM4.value = m4;
+      if (date !== null) inputDate.value = date;
+      if (venue !== null) inputVenue.value = venue;
+      
+      updatePreview();
+
+      if (theme !== null && theme !== "") {
+        setTheme(theme);
+      }
+    }
+
+    // Generate link populated with current parameters
+    function getShareableLink() {
+      const baseUrl = window.location.origin + window.location.pathname;
+      const params = new URLSearchParams();
+      params.set('team', inputTeam.value);
+      if (inputM1.value) params.set('m1', inputM1.value);
+      if (inputM2.value) params.set('m2', inputM2.value);
+      if (inputM3.value) params.set('m3', inputM3.value);
+      if (inputM4.value) params.set('m4', inputM4.value);
+      params.set('date', inputDate.value);
+      params.set('venue', inputVenue.value);
+      
+      // Find current theme
+      let activeTheme = 'cyan';
+      if (pass.classList.contains('theme-purple')) activeTheme = 'purple';
+      else if (pass.classList.contains('theme-crimson')) activeTheme = 'crimson';
+      else if (pass.classList.contains('theme-green')) activeTheme = 'green';
+      params.set('theme', activeTheme);
+
+      return `${baseUrl}?${params.toString()}`;
+    }
+
     // Dispatch: send email to Team Lead
     function sendEmail() {
       const email = document.getElementById("input-email").value.trim();
@@ -1548,6 +1598,7 @@
         .join(", ");
       const dateVal = inputDate.value;
       const venueVal = inputVenue.value;
+      const shareUrl = getShareableLink();
       
       const subject = encodeURIComponent(`HackSpirit 2K26 E-Pass - Team ${teamName}`);
       const bodyText = `Hi Team Lead,\n\nHere are the details for your HackSpirit 2K26 E-Pass:\n\n` +
@@ -1555,6 +1606,7 @@
         `Members: ${members}\n` +
         `Date: ${dateVal}\n` +
         `Venue: ${venueVal}\n\n` +
+        `🔗 View/Download your Digital E-Pass here:\n${shareUrl}\n\n` +
         `Present this information at the registration desk. Note: Each team member must carry a valid college ID card.\n\n` +
         `Best regards,\nHackSpirit Organizers`;
       
@@ -1583,13 +1635,15 @@
         .join(", ");
       const dateVal = inputDate.value;
       const venueVal = inputVenue.value;
+      const shareUrl = getShareableLink();
       
       const text = `*HACKSPIRIT 2K26 OFFICIAL E-PASS*\n\n` +
         `*Team:* ${teamName}\n` +
         `*Members:* ${members}\n` +
         `*Date:* ${dateVal}\n` +
         `*Venue:* ${venueVal}\n\n` +
-        `_Please present these details at the registration desk. Each member must carry a valid college ID card._`;
+        `🔗 *View / Download your Digital E-Pass card here:*\n${shareUrl}\n\n` +
+        `_(Please attach your downloaded E-Pass image (PNG) to this message before sending)_`;
       
       const whatsappUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`;
       
@@ -1696,8 +1750,9 @@
 
     // Init page state
     document.addEventListener("DOMContentLoaded", () => {
-      // Ensure preview has correct values initially
-      updatePreview();
+      // Parse URL Parameters if available
+      loadURLParameters();
+      
       // Apply scaling based on window size
       autoScalePass();
       
