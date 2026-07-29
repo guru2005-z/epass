@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackSpirit 2K26 - E-Pass Generator</title>
+  <!-- Google Fonts for futuristic, high-tech aesthetics -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- html2canvas library for PNG export -->
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      /* Theme Variables (Default Cyan) */
+      --primary: #00f0ff;
+      --primary-glow: rgba(0, 240, 255, 0.4);
+      --secondary: #0072ff;
+      --secondary-glow: rgba(0, 114, 255, 0.4);
+      --accent: #48d4ff;
+      --text-dark: #0f172a;
+      --text-light: #ffffff;
+      --card-bg: #030814;
+      --card-border: #00d8ff;
+      --body-bg: #050a15;
+      
+      /* Static styling variables */
+      --pass-w: 650px;
+      --pass-h: 920px;
+      --text-label: #1a5c8b;
+      --divider-color: rgba(26, 92, 139, 0.2);
+    }
+
+    /* Theme Presets */
+    .theme-purple {
+      --primary: #c084fc;
+      --primary-glow: rgba(192, 132, 252, 0.4);
+      --secondary: #8b5cf6;
+      --secondary-glow: rgba(139, 92, 246, 0.4);
+      --accent: #d8b4fe;
+      --card-border: #c084fc;
+      --text-label: #5e1a8b;
+      --divider-color: rgba(94, 26, 139, 0.2);
+    }
+
+    .theme-crimson {
+      --primary: #f43f5e;
+      --primary-glow: rgba(244, 63, 94, 0.4);
+      --secondary: #e11d48;
+      --secondary-glow: rgba(225, 29, 72, 0.4);
+      --accent: #fda4af;
+      --card-border: #f43f5e;
+      --text-label: #be123c;
+      --divider-color: rgba(190, 18, 60, 0.2);
+    }
+
+    .theme-green {
+      --primary: #10b981;
+      --primary-glow: rgba(16, 185, 129, 0.4);
+      --secondary: #059669;
+      --secondary-glow: rgba(5, 150, 105, 0.4);
+      --accent: #6ee7b7;
+      --card-border: #10b981;
+      --text-label: #047857;
+      --divider-color: rgba(4, 120, 87, 0.2);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--body-bg);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 114, 255, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.1) 0%, transparent 40%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+      color: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* Top Brand Header */
+    .app-header {
+      text-align: center;
+      margin-bottom: 30px;
+      margin-top: 10px;
+    }
+
+    .app-header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, #ffffff 30%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .app-header p {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-top: 5px;
+      letter-spacing: 1px;
+    }
+
+    /* Main Container Grid */
+    .app-container {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 40px;
+      max-width: 1250px;
+      width: 100%;
+      align-items: start;
+    }
+
+    @media (max-width: 1100px) {
+      .app-container {
+        grid-template-columns: 1fr;
+        max-width: 700px;
+      }
+    }
+
+    /* Controls Panel */
+    .control-panel {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .control-panel h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 10px;
+      color: #f8fafc;
+      letter-spacing: 1px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #ffffff;
+      font-size: 14px;
+      transition: all 0.25s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+      background: rgba(30, 41, 59, 0.8);
+    }
+
+    .members-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Themes Selector */
+    .theme-selector {
+      margin-bottom: 25px;
+    }
+
+    .theme-selector label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+
+    .presets-container {
+      display: flex;
+      gap: 10px;
+    }
+
+    .theme-btn {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(30, 41, 59, 0.4);
+      border-radius: 8px;
+      cursor: pointer;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .theme-btn::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .theme-btn[data-theme="cyan"]::before { background-color: #00f0ff; }
+    .theme-btn[data-theme="purple"]::before { background-color: #c084fc; }
+    .theme-btn[data-theme="crimson"]::before { background-color: #f43f5e; }
+    .theme-btn[data-theme="green"]::before { background-color: #10b981; }
+
+    .theme-btn:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+    }
+
+    .theme-btn.active {
+      border-color: var(--primary);
+      background: rgba(30, 41, 59, 0.8);
+      color: #ffffff;
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    /* Action Buttons */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 15px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 20px var(--primary-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-sample {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      margin-bottom: 15px;
+    }
+
+    .btn-sample:hover {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: #34d399;
+    }
+
+    /* Live Preview Column */
+    .preview-panel {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      perspective: 1000px;
+    }
+
+    #pass-preview-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    /* THE E-PASS CARD (Exact Image Dimensions & Design) */
+    #pass {
+      width: var(--pass-w);
+      height: var(--pass-h);
+      background: radial-gradient(circle at 50% 20%, #08162f 0%, #030815 100%);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 30px 35px 20px;
+      border-radius: 0; /* Keep rectangle shape like image */
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Digital Circuit Background inside Pass */
+    .pass-circuit-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .pass-header {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .pass-inst-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .pass-inst-text {
+      flex: 1;
+      font-family: 'Rajdhani', sans-serif;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    .pass-inst-subtext {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      letter-spacing: 2px;
+      font-weight: 500;
+      margin-top: 1px;
+    }
+
+    .inst-logo-container {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Customized Logo Images Styling */
+    .pass-logo-left {
+      width: 75px;
+      height: 75px;
+      object-fit: contain;
+      mix-blend-mode: screen; /* Remove black background of logo_nbkrist.png */
+    }
+
+    .pass-logo-right {
+      width: 75px;
+      height: 75px;
+      object-fit: contain;
+      border-radius: 50%;
+    }
+
+    .pass-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 34px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 6px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .pass-year {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: 5px;
+      text-shadow: 0 0 15px var(--primary-glow);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .pass-subtitle {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #ffffff;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+    }
+
+    /* Glowing Capsule badge: OFFICIAL E-PASS */
+    .official-badge-wrapper {
+      position: relative;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      padding: 1.5px;
+      border-radius: 8px;
+      width: 80%;
+      margin-bottom: 5px;
+    }
+
+    .official-badge-box {
+      background: #020711;
+      border-radius: 7px;
+      padding: 8px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .official-badge-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: #ffffff;
+      text-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    /* White Main Panel (Card Body) */
+    .pass-main-card {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(135deg, #ffffff 0%, #edf2f7 100%);
+      border: 3.5px solid var(--primary);
+      border-radius: 24px;
+      padding: 22px 24px;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.25fr 0.85fr;
+      gap: 20px;
+      box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.05);
+      overflow: hidden;
+    }
+
+    /* Light circuit overlay on the white card body to make it premium */
+    .pass-card-light-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.06;
+      z-index: 1;
+    }
+
+    .card-left-col {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-right-col {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--text-label);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    /* Cyberpunk Team Name Slanted Box */
+    .team-box-wrapper {
+      position: relative;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 2px;
+      clip-path: polygon(14px 0%, 100% 0%, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0% 100%, 0% 14px);
+      margin-bottom: 15px;
+    }
+
+    .team-box {
+      background: linear-gradient(180deg, #ffffff 0%, #e6eff5 100%);
+      padding: 10px 16px;
+      clip-path: polygon(13px 0%, 100% 0%, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0% 100%, 0% 13px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 52px;
+    }
+
+    .team-name-display {
+      font-family: 'Inter', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+
+    .team-icon-container {
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      border-left: 1.5px solid var(--divider-color);
+      padding-left: 12px;
+    }
+
+    /* Team Members List */
+    .members-list {
+      list-style: none;
+      margin-bottom: 12px;
+    }
+
+    .member-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    .member-item svg {
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .member-item.empty {
+      color: #94a3b8;
+    }
+
+    .horizontal-rule {
+      height: 1px;
+      background: var(--divider-color);
+      width: 100%;
+      margin: 8px 0 15px 0;
+    }
+
+    /* Metadata details (Date, Venue) */
+    .metadata-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .meta-icon {
+      color: var(--secondary);
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .meta-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .meta-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-label);
+      letter-spacing: 0.5px;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .meta-value {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    /* Verified Badge Box with Stars */
+    .verified-wrapper {
+      background: #020712;
+      border: 1.5px solid var(--primary);
+      box-shadow: 0 4px 10px var(--primary-glow);
+      border-radius: 12px;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .badge-star {
+      color: var(--primary);
+      font-size: 14px;
+      text-shadow: 0 0 5px var(--primary-glow);
+      user-select: none;
+    }
+
+    .verified-icon {
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+    }
+
+    .verified-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .verified-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 2px;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+
+    .verified-subtitle {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+
+    /* RIGHT COLUMN COMPONENT CARDS */
+    /* Logo Tech Box */
+    .logo-tech-box {
+      width: 100%;
+      background: #020712;
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+      clip-path: polygon(12px 0%, 100% 0%, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0% 100%, 0% 12px);
+      padding: 15px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      aspect-ratio: 1 / 1.15;
+    }
+
+    .tech-logo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .logo-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .logo-title span {
+      color: var(--primary);
+    }
+
+    /* Diamond Separator Badge */
+    .diamond-divider {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin: 2px 0;
+    }
+
+    .diamond-line-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 5px;
+    }
+
+    .d-line {
+      height: 1px;
+      background: var(--divider-color);
+      flex: 1;
+    }
+
+    .diamond-divider svg {
+      color: var(--secondary);
+    }
+
+    .divider-text {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--text-label);
+      text-transform: uppercase;
+    }
+
+    /* Bottom Code Panel */
+    .code-panel {
+      width: 100%;
+      background: #020712;
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1 / 0.75;
+    }
+
+    .code-panel-circuit {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .code-symbol {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--primary);
+      text-shadow: 0 0 10px var(--primary-glow);
+      z-index: 2;
+    }
+
+    /* Warning Strip */
+    .pass-warning-bar {
+      grid-column: span 2;
+      background: rgba(0, 114, 255, 0.05);
+      border: 1.5px solid rgba(0, 114, 255, 0.2);
+      border-radius: 12px;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      z-index: 2;
+    }
+
+    .warning-icon-container {
+      color: #0369a1;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .warning-text-display {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.4;
+      letter-spacing: 0.2px;
+    }
+
+    /* E-Pass Card Footer (IEEE SB Organizers) */
+    .pass-footer {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 18px;
+      padding: 0 5px;
+    }
+
+    .footer-left, .footer-right {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .footer-left {
+      text-align: left;
+    }
+
+    .footer-right {
+      text-align: right;
+    }
+
+    .footer-tag {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 1px;
+    }
+
+    .footer-tag.colored {
+      color: var(--primary);
+    }
+
+    .footer-subtag {
+      font-size: 9px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 0.5px;
+    }
+
+    .footer-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .footer-org-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .footer-logo-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-logo-row span {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 1px;
+    }
+
+    .footer-logo-sub {
+      font-size: 8px;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 1px;
+      margin-top: 1px;
+    }
+
+    /* Dispatch styling inside control panel */
+    .dispatch-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-top: 25px;
+      margin-bottom: 12px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(3, 7, 18, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: #020712;
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 30px var(--primary-glow);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      padding: 30px;
+      position: relative;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .terminal-console {
+      background: #030815;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 15px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      color: #38bdf8;
+      height: 180px;
+      overflow-y: auto;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .terminal-line {
+      margin-bottom: 6px;
+    }
+
+    .btn-close-modal {
+      background: var(--primary);
+      color: #000000;
+      font-weight: 700;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+    }
+
+    /* Print media styling */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #pass, #pass * {
+        visibility: visible;
+      }
+      #pass {
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform: none !important;
+      }
+    }
+
+    /* Loading spinner */
+    .spinner {
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top: 2px solid #ffffff;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Page Header -->
+  <header class="app-header">
+    <h1>HACKSPIRIT 2K26</h1>
+    <p>Premium Digital E-Pass Generator & Creator</p>
+  </header>
+
+  <!-- Workspace Grid Container -->
+  <main class="app-container">
+
+    <!-- Control/Form Settings Panel -->
+    <section class="control-panel">
+      <h2>E-Pass Settings</h2>
+
+      <!-- Load Sample Data Shortcut -->
+      <button class="btn btn-sample" onclick="loadSampleData()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Load Reference Pass Data
+      </button>
+
+      <!-- Team Name input -->
+      <div class="form-group">
+        <label for="input-team">Team Name</label>
+        <input type="text" id="input-team" placeholder="Enter team name" value="shatabhisha">
+      </div>
+
+      <!-- Team Members inputs -->
+      <div class="form-group">
+        <label>Team Members</label>
+        <div class="members-grid">
+          <input type="text" id="input-m1" placeholder="Member 1" value="Sai Samslesh">
+          <input type="text" id="input-m2" placeholder="Member 2" value="Raghuram">
+          <input type="text" id="input-m3" placeholder="Member 3" value="">
+          <input type="text" id="input-m4" placeholder="Member 4" value="">
+        </div>
+      </div>
+
+      <!-- Schedule inputs -->
+      <div class="form-group">
+        <label for="input-date">Hackathon Date</label>
+        <input type="text" id="input-date" placeholder="e.g. 30 July 2026, Thursday" value="30 July 2026, Thursday">
+      </div>
+
+      <div class="form-group">
+        <label for="input-venue">Venue Location</label>
+        <input type="text" id="input-venue" placeholder="e.g. New CSE, Seminar Hall - 1" value="New CSE, Seminar Hall - 1">
+      </div>
+
+      <!-- Theme selection presets -->
+      <div class="theme-selector">
+        <label>Select Glow Theme</label>
+        <div class="presets-container">
+          <button class="theme-btn active" data-theme="cyan" onclick="setTheme('cyan')">Cyan</button>
+          <button class="theme-btn" data-theme="purple" onclick="setTheme('purple')">Purple</button>
+          <button class="theme-btn" data-theme="crimson" onclick="setTheme('crimson')">Crimson</button>
+          <button class="theme-btn" data-theme="green" onclick="setTheme('green')">Green</button>
+        </div>
+      </div>
+
+      <!-- Dispatch Options -->
+      <div class="dispatch-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Dispatch E-Pass
+      </div>
+
+      <div class="form-group">
+        <label for="input-email">Team Lead Email</label>
+        <input type="email" id="input-email" placeholder="teamlead@gmail.com" value="">
+      </div>
+
+      <div class="form-group">
+        <label for="input-phone">WhatsApp Number (with Country Code)</label>
+        <input type="text" id="input-phone" placeholder="e.g. 919876543210" value="">
+      </div>
+
+      <!-- Action buttons -->
+      <div class="actions-grid">
+        <button id="downloadBtn" class="btn btn-primary" onclick="downloadPass()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PNG
+        </button>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button class="btn btn-secondary" onclick="sendEmail()" style="font-size: 13px; padding: 12px 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Send Email
+          </button>
+          <button class="btn btn-secondary" onclick="sendWhatsApp()" style="font-size: 13px; padding: 12px 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            WhatsApp
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button class="btn btn-secondary" onclick="window.print()" style="font-size: 13px; padding: 12px 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Pass
+          </button>
+          <button class="btn btn-secondary" onclick="resetForm()" style="font-size: 13px; padding: 12px 6px;">
+            Clear Form
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Card Preview Panel -->
+    <section class="preview-panel">
+      <div id="pass-preview-container">
+        
+        <!-- THE TARGET CARD FOR SCREENSHOT (DO NOT REMOVE ID) -->
+        <div id="pass">
+
+          <!-- Glowing Circuit Board Background (Inline SVG) -->
+          <svg class="pass-circuit-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 920">
+            <defs>
+              <radialGradient id="glow-grad" cx="50%" cy="15%" r="60%">
+                <stop offset="0%" stop-color="var(--secondary)" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#030815" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <rect width="650" height="920" fill="url(#glow-grad)"/>
+            
+            <!-- Circuit tracks with glowing endpoints -->
+            <path d="M -20,120 L 100,120 L 140,160 L 140,280 L 90,330 L -20,330" fill="none" stroke="var(--primary)" stroke-width="2" opacity="var(--circuit-opacity, 0.18)" />
+            <path d="M 670,220 L 550,220 L 510,260 L 510,380 L 560,430 L 670,430" fill="none" stroke="var(--primary)" stroke-width="2" opacity="var(--circuit-opacity, 0.18)" />
+            <path d="M 80,820 L 140,880 L 260,880" fill="none" stroke="var(--primary)" stroke-width="1.5" opacity="var(--circuit-opacity, 0.12)" />
+            <path d="M 570,820 L 510,880 L 390,880" fill="none" stroke="var(--primary)" stroke-width="1.5" opacity="var(--circuit-opacity, 0.12)" />
+            
+            <!-- Nodes -->
+            <circle cx="140" cy="160" r="3.5" fill="var(--primary)" opacity="0.5" />
+            <circle cx="140" cy="280" r="3.5" fill="var(--primary)" opacity="0.5" />
+            <circle cx="510" cy="260" r="3.5" fill="var(--primary)" opacity="0.5" />
+            <circle cx="510" cy="380" r="3.5" fill="var(--primary)" opacity="0.5" />
+            <circle cx="140" cy="880" r="3" fill="var(--primary)" opacity="0.4" />
+            <circle cx="510" cy="880" r="3" fill="var(--primary)" opacity="0.4" />
+          </svg>
+
+          <!-- Card Header Section -->
+          <div class="pass-header">
+            <div class="pass-inst-row">
+              <!-- Left logo (Custom NBKRIST logo image) -->
+              <div class="inst-logo-container">
+                <img src="logo_nbkrist.png" alt="NBKRIST" class="pass-logo-left">
+              </div>
+
+              <!-- Institution Heading text -->
+              <div class="pass-inst-text">
+                <div>NBKR Institute of Science & Technology</div>
+                <div class="pass-inst-subtext">(Autonomous)</div>
+              </div>
+
+              <!-- Right logo (Custom IEEE Student Branch logo image) -->
+              <div class="inst-logo-container">
+                <img src="logo_ieee.png" alt="IEEE SB" class="pass-logo-right">
+              </div>
+            </div>
+
+            <!-- Glowing Hackspirit Title -->
+            <div class="pass-title">HACKSPIRIT</div>
+            <div class="pass-year">2K26</div>
+            <div class="pass-subtitle">A 5 Hours National Level Hackathon</div>
+
+            <!-- Glow OFFICIAL E-PASS banner -->
+            <div class="official-badge-wrapper">
+              <div class="official-badge-box">
+                <div class="official-badge-text">OFFICIAL E-PASS</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Pass Card Panel (White background body) -->
+          <div class="pass-main-card">
+            
+            <!-- Delicate tech circuit overlay inside the white body -->
+            <svg class="pass-card-light-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 500">
+              <path d="M 40,40 L 120,40 L 150,70 L 150,200 L 120,230 L 40,230" fill="none" stroke="var(--secondary)" stroke-width="1.5"/>
+              <path d="M 540,80 L 460,80 L 430,110 L 430,220 L 460,250 L 540,250" fill="none" stroke="var(--secondary)" stroke-width="1.5"/>
+              <circle cx="150" cy="70" r="3" fill="var(--secondary)"/>
+              <circle cx="430" cy="110" r="3" fill="var(--secondary)"/>
+            </svg>
+
+            <!-- Card Body Left Column -->
+            <div class="card-left-col">
+              <div>
+                <!-- Team Name Section -->
+                <div class="card-label">Team Name</div>
+                <div class="team-box-wrapper">
+                  <div class="team-box">
+                    <span id="view-team" class="team-name-display">shatabhisha</span>
+                    <div class="team-icon-container">
+                      <!-- Group svg icon -->
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Team Members List Section -->
+                <div class="card-label">Team Members</div>
+                <ul class="members-list">
+                  <li class="member-item" id="view-m1-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>1. Sai Samslesh</span>
+                  </li>
+                  <li class="member-item" id="view-m2-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>2. Raghuram</span>
+                  </li>
+                  <li class="member-item empty" id="view-m3-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>3. ___________________________</span>
+                  </li>
+                  <li class="member-item empty" id="view-m4-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>4. ___________________________</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Bottom of Left Col details -->
+              <div>
+                <div class="horizontal-rule"></div>
+                
+                <!-- Metadata Rows (Date and Venue only, no bench) -->
+                <div class="metadata-section">
+                  <!-- Date row -->
+                  <div class="meta-row">
+                    <div class="meta-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                    </div>
+                    <div class="meta-content">
+                      <span class="meta-label">Date</span>
+                      <span id="view-date" class="meta-value">30 July 2026, Thursday</span>
+                    </div>
+                  </div>
+
+                  <!-- Venue row -->
+                  <div class="meta-row">
+                    <div class="meta-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                      </svg>
+                    </div>
+                    <div class="meta-content">
+                      <span class="meta-label">Venue</span>
+                      <span id="view-venue" class="meta-value">New CSE, Seminar Hall - 1</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Verified Badge Container with Stars -->
+                <div class="verified-wrapper">
+                  <span class="badge-star">★</span>
+                  <div class="verified-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      <polyline points="9 11 11 13 15 9"/>
+                    </svg>
+                  </div>
+                  <div class="verified-text">
+                    <span class="verified-title">VERIFIED</span>
+                    <span class="verified-subtitle">Official Participant</span>
+                  </div>
+                  <span class="badge-star" style="margin-left: auto;">★</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Body Right Column -->
+            <div class="card-right-col">
+              <!-- Hexagon logo box -->
+              <div class="logo-tech-box">
+                <div class="tech-logo-container">
+                  <svg width="105" height="105" viewBox="0 0 100 100" fill="none" stroke="var(--primary)" stroke-width="3">
+                    <!-- Hexagonal frames -->
+                    <polygon points="50,4 92,28 92,72 50,96 8,72 8,28" stroke-width="3.5" style="filter: drop-shadow(0 0 5px var(--primary-glow));"/>
+                    <polygon points="50,11 86,31 86,69 50,89 14,69 14,31" stroke="var(--secondary)" stroke-width="1.5"/>
+                    <!-- Cyberpunk styled H shape inside -->
+                    <path d="M 33,28 L 33,72 M 67,28 L 67,72 M 33,50 L 67,50" stroke="var(--primary)" stroke-width="8" stroke-linecap="round" style="filter: drop-shadow(0 0 6px var(--primary-glow));"/>
+                    <path d="M 33,28 L 33,72 M 67,28 L 67,72 M 33,50 L 67,50" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="logo-title">HACKSPIRIT <span>2K26</span></div>
+              </div>
+
+              <!-- Diamond Divider -->
+              <div class="diamond-divider">
+                <div class="diamond-line-row">
+                  <div class="d-line"></div>
+                  <!-- Three diamonds or design -->
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12,2 22,12 12,22 2,12"/>
+                  </svg>
+                  <div class="d-line"></div>
+                </div>
+                <span class="divider-text">Code • Innovate • Inspire</span>
+                <div class="diamond-line-row">
+                  <div class="d-line"></div>
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12,2 22,12 12,22 2,12"/>
+                  </svg>
+                  <div class="d-line"></div>
+                </div>
+              </div>
+
+              <!-- Code panel with circuits -->
+              <div class="code-panel">
+                <svg class="code-panel-circuit" viewBox="0 0 150 110" fill="none" stroke="var(--primary)" stroke-width="1.5" opacity="0.3">
+                  <path d="M 0,55 L 45,55 L 55,45 L 95,45 L 105,55 L 150,55" />
+                  <path d="M 20,20 L 50,20 L 60,30 L 60,40" />
+                  <path d="M 130,90 L 100,90 L 90,80 L 90,70" />
+                  <circle cx="60" cy="40" r="2.5" fill="var(--primary)" />
+                  <circle cx="90" cy="70" r="2.5" fill="var(--primary)" />
+                </svg>
+                <div class="code-symbol">&lt;/&gt;</div>
+              </div>
+            </div>
+
+            <!-- Bottom Warning strip inside the white panel -->
+            <div class="pass-warning-bar">
+              <div class="warning-icon-container">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <div class="warning-text-display">
+                Present this e-pass at the registration desk.<br>
+                Each team member must carry a valid college ID card.
+              </div>
+            </div>
+
+          </div> <!-- End pass-main-card -->
+
+          <!-- Footer Organizers Section -->
+          <div class="pass-footer">
+            <div class="footer-left">
+              <span class="footer-tag">#IEEE SB</span>
+              <span class="footer-subtag">NBKRIST</span>
+            </div>
+            
+            <div class="footer-center">
+              <span class="footer-org-title">Organized By</span>
+              <div class="footer-logo-row">
+                <!-- Mini IEEE Diamond logo representation -->
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--primary)" style="filter: drop-shadow(0 0 3px var(--primary-glow));">
+                  <polygon points="12,2 22,12 12,22 2,12"/>
+                  <path d="M 12,6 L 12,18 M 8,12 L 16,12" stroke="#000" stroke-width="2"/>
+                </svg>
+                <span>IEEE</span>
+              </div>
+              <span class="footer-logo-sub">STUDENT BRANCH NBKRIST</span>
+            </div>
+
+            <div class="footer-right">
+              <span class="footer-tag colored">#CSENBKRIST</span>
+              <span class="footer-subtag">BUILD • INNOVATE • IMPACT</span>
+            </div>
+          </div>
+
+        </div> <!-- End pass card -->
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Futuristic Transmission Terminal Overlay Modal -->
+  <div id="terminal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" style="filter: drop-shadow(0 0 4px var(--primary));">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        TELEMETRY DISPATCH
+      </div>
+      <div id="terminal-console" class="terminal-console">
+        <!-- Terminal lines will print here -->
+      </div>
+      <button class="btn btn-close-modal" onclick="document.getElementById('terminal-overlay').classList.remove('active')">
+        ABORT TRANSMISSION
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Elements references
+    const inputTeam = document.getElementById("input-team");
+    const inputM1 = document.getElementById("input-m1");
+    const inputM2 = document.getElementById("input-m2");
+    const inputM3 = document.getElementById("input-m3");
+    const inputM4 = document.getElementById("input-m4");
+    const inputDate = document.getElementById("input-date");
+    const inputVenue = document.getElementById("input-venue");
+
+    const viewTeam = document.getElementById("view-team");
+    const viewM1 = document.getElementById("view-m1-item");
+    const viewM2 = document.getElementById("view-m2-item");
+    const viewM3 = document.getElementById("view-m3-item");
+    const viewM4 = document.getElementById("view-m4-item");
+    const viewDate = document.getElementById("view-date");
+    const viewVenue = document.getElementById("view-venue");
+
+    const pass = document.getElementById("pass");
+
+    // Dynamic Live Preview Updates
+    function updatePreview() {
+      // Team name
+      viewTeam.textContent = inputTeam.value || "shatabhisha";
+
+      // Members list
+      updateMemberDisplay(inputM1.value, viewM1, "1");
+      updateMemberDisplay(inputM2.value, viewM2, "2");
+      updateMemberDisplay(inputM3.value, viewM3, "3");
+      updateMemberDisplay(inputM4.value, viewM4, "4");
+
+      // Metadata
+      viewDate.textContent = inputDate.value || "-";
+      viewVenue.textContent = inputVenue.value || "-";
+    }
+
+    function updateMemberDisplay(val, element, num) {
+      const span = element.querySelector("span");
+      if (val.trim() !== "") {
+        span.textContent = `${num}. ${val}`;
+        element.classList.remove("empty");
+      } else {
+        span.textContent = `${num}. ___________________________`;
+        element.classList.add("empty");
+      }
+    }
+
+    // Attach listeners to all inputs
+    [inputTeam, inputM1, inputM2, inputM3, inputM4, inputDate, inputVenue].forEach(input => {
+      input.addEventListener("input", updatePreview);
+    });
+
+    // Theme preset selection selector
+    function setTheme(theme) {
+      // Remove all theme classes
+      pass.classList.remove("theme-purple", "theme-crimson", "theme-green");
+      document.querySelectorAll(".theme-btn").forEach(btn => btn.classList.remove("active"));
+
+      if (theme !== "cyan") {
+        pass.classList.add(`theme-${theme}`);
+      }
+
+      document.querySelector(`.theme-btn[data-theme="${theme}"]`).classList.add("active");
+    }
+
+    // Load sample reference data button callback
+    function loadSampleData() {
+      inputTeam.value = "shatabhisha";
+      inputM1.value = "Sai Samslesh";
+      inputM2.value = "Raghuram";
+      inputM3.value = "";
+      inputM4.value = "";
+      inputDate.value = "30 July 2026, Thursday";
+      inputVenue.value = "New CSE ,Seminar Hall - 1";
+      updatePreview();
+      setTheme("cyan");
+    }
+
+    // Clear form callback
+    function resetForm() {
+      inputTeam.value = "";
+      inputM1.value = "";
+      inputM2.value = "";
+      inputM3.value = "";
+      inputM4.value = "";
+      inputDate.value = "";
+      inputVenue.value = "";
+      updatePreview();
+    }
+
+    // Auto-scale card to fit wrapper on small screens dynamically
+    function autoScalePass() {
+      const container = document.getElementById("pass-preview-container");
+      if (!container) return;
+      const containerW = container.clientWidth;
+      const scale = Math.min((containerW - 10) / 650, 1);
+      
+      pass.style.transform = `scale(${scale})`;
+      pass.style.transformOrigin = "top center";
+      container.style.height = `${920 * scale + 20}px`;
+    }
+
+    window.addEventListener("resize", autoScalePass);
+
+    // Dispatch: send email to Team Lead
+    function sendEmail() {
+      const email = document.getElementById("input-email").value.trim();
+      if (!email) {
+        alert("Please enter the Team Lead's email address first!");
+        return;
+      }
+      
+      const teamName = inputTeam.value || "shatabhisha";
+      const members = [inputM1.value, inputM2.value, inputM3.value, inputM4.value]
+        .filter(name => name.trim() !== "")
+        .join(", ");
+      const dateVal = inputDate.value;
+      const venueVal = inputVenue.value;
+      
+      const subject = encodeURIComponent(`HackSpirit 2K26 E-Pass - Team ${teamName}`);
+      const bodyText = `Hi Team Lead,\n\nHere are the details for your HackSpirit 2K26 E-Pass:\n\n` +
+        `Team Name: ${teamName}\n` +
+        `Members: ${members}\n` +
+        `Date: ${dateVal}\n` +
+        `Venue: ${venueVal}\n\n` +
+        `Present this information at the registration desk. Note: Each team member must carry a valid college ID card.\n\n` +
+        `Best regards,\nHackSpirit Organizers`;
+      
+      const mailtoUrl = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+      
+      // Show terminal simulation modal
+      showTerminalModal("Email", email, () => {
+        window.location.href = mailtoUrl;
+      });
+    }
+
+    // Dispatch: send WhatsApp message to Team Lead
+    function sendWhatsApp() {
+      let phone = document.getElementById("input-phone").value.trim();
+      if (!phone) {
+        alert("Please enter the WhatsApp number (including country code) first!");
+        return;
+      }
+      
+      // Clean phone number (remove +, spaces, dashes)
+      phone = phone.replace(/[^0-9]/g, "");
+      
+      const teamName = inputTeam.value || "shatabhisha";
+      const members = [inputM1.value, inputM2.value, inputM3.value, inputM4.value]
+        .filter(name => name.trim() !== "")
+        .join(", ");
+      const dateVal = inputDate.value;
+      const venueVal = inputVenue.value;
+      
+      const text = `*HACKSPIRIT 2K26 OFFICIAL E-PASS*\n\n` +
+        `*Team:* ${teamName}\n` +
+        `*Members:* ${members}\n` +
+        `*Date:* ${dateVal}\n` +
+        `*Venue:* ${venueVal}\n\n` +
+        `_Please present these details at the registration desk. Each member must carry a valid college ID card._`;
+      
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`;
+      
+      // Show terminal simulation modal
+      showTerminalModal("WhatsApp", `+${phone}`, () => {
+        window.open(whatsappUrl, "_blank");
+      });
+    }
+
+    // Cyberpunk Terminal Simulation Modal Animation
+    function showTerminalModal(type, target, onComplete) {
+      const overlay = document.getElementById("terminal-overlay");
+      const consoleEl = document.getElementById("terminal-console");
+      consoleEl.innerHTML = "";
+      overlay.classList.add("active");
+      
+      const lines = [
+        `[SYS] Initializing secure telemetry channel...`,
+        `[SYS] Connected to HackSpirit dispatch server.`,
+        `[DATA] Compiling E-Pass credentials for [${inputTeam.value || 'shatabhisha'}]...`,
+        `[DATA] Generating cryptographically signed payload... Done.`,
+        `[SMTP] Routing payload to target: ${target}...`,
+        `[SYS] Handshaking protocols complete. Ready to dispatch.`
+      ];
+      
+      let i = 0;
+      function printNextLine() {
+        if (i < lines.length) {
+          const p = document.createElement("div");
+          p.className = "terminal-line";
+          p.textContent = lines[i];
+          consoleEl.appendChild(p);
+          consoleEl.scrollTop = consoleEl.scrollHeight;
+          i++;
+          setTimeout(printNextLine, 400);
+        } else {
+          const p = document.createElement("div");
+          p.className = "terminal-line";
+          p.style.color = "#10b981";
+          p.style.fontWeight = "bold";
+          p.textContent = `[SUCCESS] Connection established. Redirecting to ${type} client...`;
+          consoleEl.appendChild(p);
+          consoleEl.scrollTop = consoleEl.scrollHeight;
+          
+          setTimeout(() => {
+            overlay.classList.remove("active");
+            if (onComplete) onComplete();
+          }, 1100);
+        }
+      }
+      
+      setTimeout(printNextLine, 200);
+    }
+
+    // PNG download with html2canvas (scaled up for high-res crispness)
+    function downloadPass() {
+      // Save current scaling transforms
+      const prevTransform = pass.style.transform;
+      const prevOrigin = pass.style.transformOrigin;
+      
+      // Reset transform so html2canvas renders the card at its true native dimensions
+      pass.style.transform = "none";
+      pass.style.transformOrigin = "initial";
+
+      // Set downloading status indicator on the button
+      const btn = document.getElementById("downloadBtn");
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = `<span class="spinner"></span> Generating PNG...`;
+      btn.disabled = true;
+
+      // Render after a small timeout to let browser styles settle
+      setTimeout(() => {
+        html2canvas(pass, {
+          scale: 2.5, // Scale up for printing/downloading high definition PNGs
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null,
+          logging: false
+        }).then(canvas => {
+          const link = document.createElement("a");
+          const teamName = inputTeam.value.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+          link.download = `${teamName || 'hackspirit'}-epass.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+
+          // Restore original scaling styles
+          pass.style.transform = prevTransform;
+          pass.style.transformOrigin = prevOrigin;
+
+          btn.innerHTML = originalHTML;
+          btn.disabled = false;
+        }).catch(err => {
+          console.error("Error creating pass image:", err);
+          pass.style.transform = prevTransform;
+          pass.style.transformOrigin = prevOrigin;
+          btn.innerHTML = "Download Failed";
+          btn.disabled = false;
+          setTimeout(() => {
+            btn.innerHTML = originalHTML;
+          }, 3000);
+        });
+      }, 150);
+    }
+
+    // Init page state
+    document.addEventListener("DOMContentLoaded", () => {
+      // Ensure preview has correct values initially
+      updatePreview();
+      // Apply scaling based on window size
+      autoScalePass();
+      
+      // Font load detection to trigger scaled pass height calculations
+      document.fonts.ready.then(() => {
+        autoScalePass();
+      });
+    });
+  </script>
+</body>
+</html>
